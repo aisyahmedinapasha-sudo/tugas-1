@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="id">    
+<head>
+</head>
+
+<style>
+body {
+    font-family: Arial;
+    margin: 20px;
+    background: #c04d0a;
+}
+
+form {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 8px;
+    margin: 5px 0 15px;
+}
+
+button {
+    padding: 10px;
+    margin-right: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.submit {
+    background: green;
+    color: white;
+}
+
+.reset {
+    background: red;
+    color: white;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+th, td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+button:hover {
+    opacity: 0.8;
+}
+
+/* ===== JENIS KELAMIN TABEL ===== */
+.jk-table {
+    width: 100%;
+    margin-bottom: 15px;
+    border-collapse: collapse;
+}
+
+.jk-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    background: #f9f9f9;
+    cursor: pointer;
+}
+
+.jk-table td:hover {
+    background: #e6f0ff;
+}
+
+input[type="radio"]{
+    width:auto;
+}
+
+/* tombol aksi */
+.aksi-btn{
+    background:none;
+    border:none;
+    font-size:20px;
+    cursor:pointer;
+}
+</style>
+
+
+<body>
+
+<h2>Form Data Mahasiswa</h2>
+
+<form id="formMahasiswa">
+
+    <label>NIM</label>
+    <input type="text" id="nim" required>
+
+    <label>Nama</label>
+    <input type="text" id="nama" required>
+
+    <label>Alamat</label>
+    <textarea id="alamat"></textarea>
+
+    <!-- JENIS KELAMIN MODEL TABEL -->
+    <label>Jenis Kelamin</label>
+
+    <table class="jk-table">
+        <tr>
+            <td>
+                <label>
+                    <input type="radio" name="jk" value="Pria"> Pria
+                </label>
+            </td>
+            <td>
+                <label>
+                    <input type="radio" name="jk" value="Wanita"> Wanita
+                </label>
+            </td>
+        </tr>
+    </table>
+
+    <label>Tanggal Lahir</label>
+
+    <select id="tanggal"></select>
+
+    <select id="bulan">
+        <option value="01">Januari</option>
+        <option value="02">Februari</option>
+        <option value="03">Maret</option>
+        <option value="04">April</option>
+        <option value="05">Mei</option>
+        <option value="06">Juni</option>
+        <option value="07">Juli</option>
+        <option value="08">Agustus</option>
+        <option value="09">September</option>
+        <option value="10">Oktober</option>
+        <option value="11">November</option>
+        <option value="12">Desember</option>
+    </select>
+
+    <select id="tahun"></select>
+
+    <label>Password</label>
+    <input type="password" id="password">
+
+    <button type="submit" class="submit">Submit</button>
+    <button type="reset" class="reset">Reset</button>
+
+</form>
+
+
+<h2>Data Mahasiswa</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>NIM</th>
+            <th>Nama</th>
+            <th>Alamat</th>
+            <th>JK</th>
+            <th>TTL</th>
+            <th>Password</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+
+    <tbody id="tableBody"></tbody>
+</table>
+
+
+<script>
+
+// isi tanggal
+const tanggalSelect = document.getElementById("tanggal");
+for(let i=1;i<=31;i++){
+    tanggalSelect.innerHTML += `<option value="${i}">${i}</option>`;
+}
+
+// isi tahun
+const tahunSelect = document.getElementById("tahun");
+for(let i=1980;i<=2025;i++){
+    tahunSelect.innerHTML += `<option value="${i}">${i}</option>`;
+}
+
+const form = document.getElementById("formMahasiswa");
+const tableBody = document.getElementById("tableBody");
+
+let dataMahasiswa = JSON.parse(localStorage.getItem("dataMahasiswa")) || [];
+
+let editIndex = -1;
+
+tampilkanData();
+
+form.addEventListener("submit", function(e){
+    e.preventDefault();
+
+    let nim = document.getElementById("nim").value;
+    let nama = document.getElementById("nama").value;
+    let alamat = document.getElementById("alamat").value;
+
+    let jk = document.querySelector('input[name="jk"]:checked')?.value || "";
+
+    let tanggal = document.getElementById("tanggal").value;
+    let bulan = document.getElementById("bulan").value;
+    let tahun = document.getElementById("tahun").value;
+
+    let password = document.getElementById("password").value;
+
+    let ttl = tanggal + "-" + bulan + "-" + tahun;
+
+    let data = { nim, nama, alamat, jk, ttl, password };
+
+    if(editIndex == -1){
+        dataMahasiswa.push(data);
+    } else {
+        dataMahasiswa[editIndex] = data;
+        editIndex = -1;
+    }
+
+    localStorage.setItem("dataMahasiswa", JSON.stringify(dataMahasiswa));
+
+    tampilkanData();
+    form.reset();
+});
+
+function tampilkanData(){
+    tableBody.innerHTML = "";
+
+    dataMahasiswa.forEach((item,index)=>{
+        tableBody.innerHTML += `
+            <tr>
+                <td>${item.nim}</td>
+                <td>${item.nama}</td>
+                <td>${item.alamat}</td>
+                <td>${item.jk}</td>
+                <td>${item.ttl}</td>
+                <td>${item.password}</td>
+                <td>
+                    <button class="aksi-btn" onclick="editData(${index})">✏️</button>
+                    <button class="aksi-btn" onclick="hapusData(${index})">🗑️</button>
+                </td>
+            </tr>
+        `;
+    });
+}
+
+function hapusData(index){
+    dataMahasiswa.splice(index,1);
+    localStorage.setItem("dataMahasiswa", JSON.stringify(dataMahasiswa));
+    tampilkanData();
+}
+
+function editData(index){
+    let item = dataMahasiswa[index];
+
+    document.getElementById("nim").value = item.nim;
+    document.getElementById("nama").value = item.nama;
+    document.getElementById("alamat").value = item.alamat;
+    document.getElementById("password").value = item.password;
+
+    document.querySelector(`input[name="jk"][value="${item.jk}"]`).checked = true;
+
+    let ttl = item.ttl.split("-");
+    document.getElementById("tanggal").value = ttl[0];
+    document.getElementById("bulan").value = ttl[1];
+    document.getElementById("tahun").value = ttl[2];
+
+    editIndex = index;
+}
+
+</script>
+
+</body>
+</html>
